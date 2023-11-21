@@ -57,6 +57,5 @@ class FileStorage:
         """Deletes an object"""
         if obj is not None:
             key = f"{obj.__class__.__name__}.{obj.id}"
-            print(key)
             if key in self.__objects:
                 del (FileStorage.__objects[key])
