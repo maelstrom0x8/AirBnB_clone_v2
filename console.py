@@ -120,7 +120,13 @@ class HBNBCommand(cmd.Cmd):
         for x in range(1, len(args)):
             tmp = args[x].split("=")
             arg_dict[tmp[0]] = tmp[1]
-        return arg_dict
+        new_dict = {}
+        for key, value in arg_dict.items():
+            if isinstance(value, str):
+                new_dict[key] = value.replace("_", " ").replace("", '')
+            else:
+                new_dict[key] = value
+        return new_dict
 
     def do_create(self, args):
         """ Create an object of any class"""
