@@ -2,7 +2,6 @@
 """ City Module for HBNB project """
 from models.base_model import BaseModel, Base, id_generator
 from sqlalchemy import ForeignKey, Column, String
-from sqlalchemy.orm import relationship, backref
 
 
 class City(BaseModel, Base):
