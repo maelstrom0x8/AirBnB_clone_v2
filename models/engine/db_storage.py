@@ -7,6 +7,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
 from sqlalchemy.exc import DatabaseError
 from models.base_model import BaseModel, Base
+from models.user import User
 from models.city import *
 from models.state import *
 
@@ -52,7 +53,7 @@ class DBStorage:
     __session = None
 
     entity_map: dict[str, Entity] = {
-        'State': State, 'City': City
+        'State': State, 'City': City, 'User': User
     }
 
     def __init__(self) -> None:
