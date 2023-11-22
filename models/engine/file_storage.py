@@ -12,9 +12,15 @@ class FileStorage:
         """Returns a dictionary of models currently in storage"""
         if cls is None:
             return FileStorage.__objects
-        return {
-            key: value for (key, value) in FileStorage.__objects.items()
-            if type(value) is cls}
+        elif type(cls) is str:
+            return {
+                key: value for (key, value) in FileStorage.__objects.items()
+                if cls == key[0:len(cls)]
+            }
+        else:
+            return {
+                key: value for (key, value) in FileStorage.__objects.items()
+                if type(value) is cls}
 
     def new(self, obj):
         """Adds new object to storage dictionary"""
