@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 """ Console Module """
 import cmd
 import sys
@@ -34,7 +34,7 @@ class HBNBCommand(cmd.Cmd):
     def preloop(self):
         """Prints if isatty is false"""
         if not sys.__stdin__.isatty():
-            print('(hbnb)')
+            print('(hbnb)', end='')
 
     def precmd(self, line):
         """Reformat command line for advanced command syntax.
@@ -145,9 +145,8 @@ class HBNBCommand(cmd.Cmd):
         new_instance = HBNBCommand.classes[cls_name]()
         for y in arg_dict:
             setattr(new_instance, y, arg_dict[y])
-        storage.save()
         print(new_instance.id)
-        storage.save()
+        new_instance.save()
 
     def help_create(self):
         """ Help information for the create method """
@@ -222,21 +221,13 @@ class HBNBCommand(cmd.Cmd):
 
     def do_all(self, args):
         """ Shows all objects, or all objects of a class"""
-        print_list = []
-
-        if args:
-            args = args.split(' ')[0]  # remove possible trailing args
-            if args not in HBNBCommand.classes:
-                print("** class doesn't exist **")
-                return
-            for k, v in storage._FileStorage__objects.items():
-                if k.split('.')[0] == args:
-                    print_list.append(str(v))
-        else:
-            for k, v in storage._FileStorage__objects.items():
-                print_list.append(str(v))
-
-        print(print_list)
+       
+        args = args.split(' ')[0]  # remove possible trailing args
+        if args and args not in HBNBCommand.classes:
+            print("** class doesn't exist **")
+            return
+        records = storage.all(args)
+        [ print(y) for _, y in records.items()]
 
     def help_all(self):
         """ Help information for the all command """
