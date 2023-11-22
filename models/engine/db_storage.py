@@ -55,7 +55,6 @@ class DBStorage:
     def __init__(self) -> None:
         self.datasource = DataSource()
         self.__engine = self.datasource.engine
-        self.__session = self.datasource.session
 
     @property
     def engine(self):
