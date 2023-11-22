@@ -30,11 +30,7 @@ class DataSource:
         self.__connection_url = f"{self.__dialect}+{self.__driver}://{self.__user}:{self.__password}@{self.__host}:{self.__port}/{self.__database}"
         self.__engine = create_engine(
             self.__connection_url, pool_pre_ping=True)
-        if self.engine is not None:
-            Base.metadata.create_all(self.__engine)
-        Session = sessionmaker()
-        Session.configure(bind=self.__engine, expire_on_commit=False)
-        self.__session = Session()
+
 
     @property
     def engine(self):
@@ -77,7 +73,12 @@ class DBStorage:
         self.session.add(obj)
 
     def reload(self):
-        pass
+        if self.engine is not None:
+            Base.metadata.create_all(self.__engine)
+        session_factory = sessionmaker(bind=self.__engine, expire_on_commit=False)
+        Session = scoped_session(session_factory)
+        self.__session = Session()
+
 
     def all(self, entity):
         _class = self.entity_map.get(entity)
