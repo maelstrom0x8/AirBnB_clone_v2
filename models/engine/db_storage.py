@@ -79,13 +79,17 @@ class DBStorage:
         self.__session = Session()
 
 
-    def all(self, entity):
-        _class = self.entity_map.get(entity)
-        if not _class:
-            print("** class doesn't exist **")
-            return None
-        result = self.session.query(_class).order_by(_class.id).all()
-        return {f"{entry.__class__.__name__}.{entry.id}": entry for entry in result}
+    def all(self, cls=None):
+        if cls == None:
+            result = self.session.query().order_by(_class.id).all()
+            return {f"{entry.__class__.__name__}.{entry.id}": entry for entry in result}
+        else:
+            _class = self.entity_map.get(cls)
+            if not _class:
+                print("** class doesnt exist **")
+                return None
+            result = self.session.query(_class).order_by(_class.id).all()
+            return {f"{entry.__class__.__name__}.{entry.id}": entry for entry in result}
 
     def save(self):
         self.session.commit()
