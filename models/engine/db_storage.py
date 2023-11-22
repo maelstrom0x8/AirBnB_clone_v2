@@ -18,16 +18,16 @@ class DataSource:
     __engine = None
     __session = None
     __connection_url = ''
-    __port = int(os.getenv('HBNB_DB_PORT', 3306))
     __user = os.getenv('HBNB_MYSQL_USER')
     __password = os.getenv('HBNB_MYSQL_PWD')
     __host = os.getenv('HBNB_MYSQL_HOST')
     __database = os.getenv('HBNB_MYSQL_DB')
     __dialect = 'mysql'
     __driver = 'mysqldb'
+    __env = os.getenv('HBNB_ENV')
 
     def __init__(self) -> None:
-        self.__connection_url = f"{self.__dialect}+{self.__driver}://{self.__user}:{self.__password}@{self.__host}:{self.__port}/{self.__database}"
+        self.__connection_url = f"{self.__dialect}+{self.__driver}://{self.__user}:{self.__password}@{self.__host}/{self.__database}"
         self.__engine = create_engine(
             self.__connection_url, pool_pre_ping=True)
 
@@ -53,8 +53,12 @@ class DBStorage:
     }
 
     def __init__(self) -> None:
+        env = os.getenv('HBNB_ENV')
         self.datasource = DataSource()
         self.__engine = self.datasource.engine
+
+        if env == 'test':
+            Base.meta.drop_all(self.__engine)
 
     @property
     def engine(self):
@@ -80,16 +84,16 @@ class DBStorage:
 
 
     def all(self, cls=None):
-        if cls == None:
-            result = self.session.query().order_by(_class.id).all()
+        _class = self.entity_map.get(cls)
+        result = []
+        if cls is not None:
+            result.extend(self.session.query(_class).all())
             return {f"{entry.__class__.__name__}.{entry.id}": entry for entry in result}
         else:
-            _class = self.entity_map.get(cls)
-            if not _class:
-                print("** class doesnt exist **")
-                return None
-            result = self.session.query(_class).order_by(_class.id).all()
-            return {f"{entry.__class__.__name__}.{entry.id}": entry for entry in result}
+            for item in self.entity_map.values():
+                result.extend(self.session.query(item).all())
+
+        return {f"{entry.__class__.__name__}.{entry.id}": entry for entry in result}
 
     def save(self):
         self.session.commit()
