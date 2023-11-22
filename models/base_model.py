@@ -2,7 +2,7 @@
 """This module defines a base class for all models in our hbnb clone"""
 from sqlalchemy.orm import declarative_base
 from sqlalchemy import Column, String, DateTime
-from models.engine.file_storage import FileStorage
+from models.__init__ import storage
 import uuid
 from datetime import datetime
 
@@ -22,12 +22,12 @@ class BaseModel:
     updated_at = Column(DateTime(), default=datetime.utcnow(), nullable=False)
 
     def __init__(self, *args, **kwargs):
-        """Instatntiates a new model"""
+        """Instantiates a new model"""
         if not kwargs:
-            from models import storage
             self.id = str(uuid.uuid4())
             self.created_at = datetime.now()
             self.updated_at = datetime.now()
+
         else:
             kwargs['updated_at'] = datetime.strptime(kwargs['updated_at'],
                                                      '%Y-%m-%dT%H:%M:%S.%f')
@@ -38,12 +38,14 @@ class BaseModel:
 
     def __str__(self):
         """Returns a string representation of the instance"""
+        orm_name = '_sa_instance_state'
         cls = (str(type(self)).split('.')[-1]).split('\'')[0]
+        if orm_name in self.__dict__:
+            del (self.__dict__[orm_name])
         return '[{}] ({}) {}'.format(cls, self.id, self.__dict__)
 
     def save(self):
         """Updates updated_at with current time when instance is changed"""
-        from models import storage
         self.updated_at = datetime.now()
         storage.new(self)
         storage.save()
@@ -62,5 +64,5 @@ class BaseModel:
         return dictionary
 
     def delete(self):
-        fs = FileStorage()
-        fs.delete(self)
+        """Deletes an instance from storage"""
+        storage.delete(self)
