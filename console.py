@@ -227,7 +227,9 @@ class HBNBCommand(cmd.Cmd):
             print("** class doesn't exist **")
             return
         records = storage.all(args)
-        [ print(y) for _, y in records.items()]
+        result = f'[{", ".join(str(value) for value in records.values())}]'
+        print(result)
+       
 
     def help_all(self):
         """ Help information for the all command """
