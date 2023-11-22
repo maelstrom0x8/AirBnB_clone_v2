@@ -68,23 +68,12 @@ class DBStorage:
     def session(self):
         return self.__session
 
-    def new(self, entity, **kwargs):
-        _class = self.entity_map.get(entity)
+    def new(self, obj):
+        _class = self.entity_map.get(obj.__class__.__name__)
         if not _class:
             print("** class doesn't exist **")
             return None
-
-        instance = _class(**kwargs)
-        try:
-            if instance is not None:
-                self.session.add(instance)
-                return instance.id
-        except DatabaseError:
-            self.session.rollback()
-            return None
-        else:
-            self.session.commit()
-            return instance.id
+        self.session.add(obj)
 
     def reload(self):
         pass
@@ -94,5 +83,8 @@ class DBStorage:
         if not _class:
             print("** class doesn't exist **")
             return None
+        result = self.session.query(_class).order_by(_class.id).all()
+        return {f"{entry.__class__.__name__}.{entry.id}": entry for entry in result}
 
-        return self.session.query(_class).order_by(_class.id).all()
+    def save(self):
+        self.session.commit()
