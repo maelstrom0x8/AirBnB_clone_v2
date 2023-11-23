@@ -1,11 +1,22 @@
 #!/usr/bin/python3
 """ """
-from models.base_model import BaseModel
-import unittest
 import datetime
-from uuid import UUID
 import json
 import os
+import re
+import unittest
+
+from models.base_model import BaseModel
+
+
+def is_valid_uuid4(s):
+    # Define the pattern for UUID version 4
+    uuid4_pattern = re.compile(
+        r'^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-4[a-fA-F0-9]{3}-[89aAbB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$'
+    )
+
+    # Check if the string matches the UUID pattern
+    return bool(uuid4_pattern.match(s))
 
 
 class test_basemodel(unittest.TestCase):
@@ -60,7 +71,7 @@ class test_basemodel(unittest.TestCase):
         """ """
         i = self.value()
         self.assertEqual(str(i), '[{}] ({}) {}'.format(self.name, i.id,
-                         i.__dict__))
+                                                       i.__dict__))
 
     def test_todict(self):
         """ """
@@ -97,3 +108,12 @@ class test_basemodel(unittest.TestCase):
         n = new.to_dict()
         new = BaseModel(**n)
         self.assertFalse(new.created_at == new.updated_at)
+
+
+@unittest.skipIf(os.environ.get('HBNB_TYPE_STORAGE') != 'db',
+                 "Skipping the entire test class because environment variable is not set to 'db'")
+class TestDBPersistence(unittest.TestCase):
+
+    def setUp(self):
+        """"""
+        # models.storage.datasource.reset()

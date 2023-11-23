@@ -5,13 +5,8 @@ import shlex
 import sys
 
 from models.__init__ import storage
-from models.amenity import Amenity
-from models.base_model import BaseModel
 from models.city import City
-from models.place import Place
-from models.review import Review
 from models.state import State
-from models.user import User
 
 
 class HBNBCommand(cmd.Cmd):
@@ -21,9 +16,7 @@ class HBNBCommand(cmd.Cmd):
     prompt = '(hbnb) ' if sys.__stdin__.isatty() else ''
 
     classes = {
-        'BaseModel': BaseModel, 'User': User, 'Place': Place,
-        'State': State, 'City': City, 'Amenity': Amenity,
-        'Review': Review
+        'State': State, 'City': City,
     }
     dot_cmds = ['all', 'count', 'show', 'destroy', 'update']
     types = {

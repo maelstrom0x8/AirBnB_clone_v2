@@ -1,10 +1,12 @@
 #!/usr/bin/python3
 """ State Module for HBNB project """
-from models.base_model import BaseModel, Base, id_generator
-from sqlalchemy import ForeignKey, Column, String
-from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy.orm import relationship, backref
 import os
+
+from sqlalchemy import Column, String
+from sqlalchemy.orm import relationship
+
+from models.base_model import BaseModel, Base
+from models.city import City
 
 
 class State(BaseModel, Base):
@@ -18,5 +20,10 @@ class State(BaseModel, Base):
         def cities(self):
             """city relationship for file storage"""
             import models
-            result = models.storage.all(models.City)
+            result = models.storage.all(City)
             return [y for _, y in result.items() if self.id == y.id]
+
+    def save(self):
+        if self.name is None:
+            raise AttributeError("Attribute 'name' cannot be none")
+        super().save()

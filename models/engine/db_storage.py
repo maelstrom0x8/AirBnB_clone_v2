@@ -1,15 +1,11 @@
 #!/usr/bin/env python3
+from typing import Union
 
-import os
-
-from typing import Any, Union
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
-from sqlalchemy.exc import DatabaseError
-from models.base_model import BaseModel, Base
-from models.user import User
-from models.city import *
+
 from models.state import *
+from models.user import User
 
 Entity = Union[Base, BaseModel]
 
@@ -25,12 +21,13 @@ class DataSource:
     __dialect = 'mysql'
     __driver = 'mysqldb'
     __env = os.getenv('HBNB_ENV')
+    __port: int = int(os.getenv('HBNB_DB_PORT', 3306))
 
     def __init__(self) -> None:
-        self.__connection_url = f"{self.__dialect}+{self.__driver}://{self.__user}:{self.__password}@{self.__host}/{self.__database}"
+        self.__connection_url = f"{self.__dialect}+{self.__driver}://{self.__user}:{self.__password}@{self.__host}:{self.__port}/{self.__database}"
+        print(self.__connection_url)
         self.__engine = create_engine(
             self.__connection_url, pool_pre_ping=True)
-
 
     @property
     def engine(self):
@@ -42,6 +39,9 @@ class DataSource:
 
     def get_connection_details(self):
         return self.__connection_url
+
+    def reset(self):
+        self.session.drop_all(self.engine)
 
 
 class DBStorage:
@@ -58,7 +58,7 @@ class DBStorage:
         self.__engine = self.datasource.engine
 
         if env == 'test':
-            Base.meta.drop_all(self.__engine)
+            Base.metadata.drop_all(self.__engine)
 
     @property
     def engine(self):
@@ -82,13 +82,15 @@ class DBStorage:
         Session = scoped_session(session_factory)
         self.__session = Session()
 
-
     def all(self, cls=None):
         _class = self.entity_map.get(cls)
         result = []
         if cls is not None:
             result.extend(self.session.query(_class).all())
-            return {f"{entry.__class__.__name__}.{entry.id}": entry for entry in result}
+            if len(result) == 1 and result[0][0] is None:
+                return []
+            s = {f"{entry.__class__.__name__}.{entry.id}": entry for entry in result}
+            return s
         else:
             for item in self.entity_map.values():
                 result.extend(self.session.query(item).all())
