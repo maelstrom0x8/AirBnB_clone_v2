@@ -1,16 +1,17 @@
 #!/usr/bin/env python3
 """ Console Module """
 import cmd
-import sys
 import shlex
-from models.base_model import BaseModel
+import sys
+
 from models.__init__ import storage
-from models.user import User
-from models.place import Place
-from models.state import State
-from models.city import City
 from models.amenity import Amenity
+from models.base_model import BaseModel
+from models.city import City
+from models.place import Place
 from models.review import Review
+from models.state import State
+from models.user import User
 
 
 class HBNBCommand(cmd.Cmd):
@@ -74,7 +75,7 @@ class HBNBCommand(cmd.Cmd):
                 pline = pline[2].strip()  # pline is now str
                 if pline:
                     # check for *args or **kwargs
-                    if pline[0] == '{' and pline[-1] == '}'\
+                    if pline[0] == '{' and pline[-1] == '}' \
                             and type(eval(pline)) is dict:
                         _args = pline
                     else:
@@ -221,7 +222,7 @@ class HBNBCommand(cmd.Cmd):
 
     def do_all(self, args):
         """ Shows all objects, or all objects of a class"""
-       
+
         args = args.split(' ')[0]  # remove possible trailing args
         if args and args not in HBNBCommand.classes:
             print("** class doesn't exist **")
@@ -229,7 +230,6 @@ class HBNBCommand(cmd.Cmd):
         records = storage.all(args)
         result = f'[{", ".join(str(value) for value in records.values())}]'
         print(result)
-       
 
     def help_all(self):
         """ Help information for the all command """
