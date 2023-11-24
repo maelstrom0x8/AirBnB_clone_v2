@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
+import contextlib
 from typing import Union
 
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, scoped_session
+from sqlalchemy.orm import sessionmaker, scoped_session, Session
 
 from models.state import *
 from models.user import User
@@ -12,7 +13,7 @@ Entity = Union[Base, BaseModel]
 
 class DataSource:
     __engine = None
-    __session = None
+    __session: Session = None
     __connection_url = ''
     __user = os.getenv('HBNB_MYSQL_USER')
     __password = os.getenv('HBNB_MYSQL_PWD')
@@ -24,8 +25,11 @@ class DataSource:
     __port: int = int(os.getenv('HBNB_DB_PORT', 3306))
 
     def __init__(self) -> None:
-        self.__connection_url = f"{self.__dialect}+{self.__driver}://{self.__user}:{self.__password}@{self.__host}:{self.__port}/{self.__database}"
-        print(self.__connection_url)
+        cargs = [f"{self.__dialect}+{self.__driver}://",
+                 f"{self.__user}:{self.__password}@{self.__host}:",
+                 f"{self.__port}/{self.__database}"]
+
+        self.__connection_url = ''.join(cargs)
         self.__engine = create_engine(
             self.__connection_url, pool_pre_ping=True)
 
@@ -41,7 +45,12 @@ class DataSource:
         return self.__connection_url
 
     def reset(self):
-        self.session.drop_all(self.engine)
+        if self.__session is not None:
+            with contextlib.closing(self.__engine.connect()) as con:
+                trans = con.begin()
+                for table in reversed(Base.metadata.sorted_tables):
+                    con.execute(table.delete())
+                trans.commit()
 
 
 class DBStorage:
@@ -65,7 +74,7 @@ class DBStorage:
         return self.__engine
 
     @property
-    def session(self):
+    def session(self) -> Session:
         return self.__session
 
     def new(self, obj):
@@ -78,7 +87,8 @@ class DBStorage:
     def reload(self):
         if self.engine is not None:
             Base.metadata.create_all(self.__engine)
-        session_factory = sessionmaker(bind=self.__engine, expire_on_commit=False)
+        session_factory = sessionmaker(bind=self.__engine,
+                                       expire_on_commit=False)
         Session = scoped_session(session_factory)
         self.__session = Session()
 
@@ -89,13 +99,18 @@ class DBStorage:
             result.extend(self.session.query(_class).all())
             if len(result) == 1 and result[0][0] is None:
                 return []
-            s = {f"{entry.__class__.__name__}.{entry.id}": entry for entry in result}
-            return s
+
+            # @formatter:off
+            return {f"{entry.__class__.__name__}.{entry.id}": entry
+                    for entry in result}
+            # formatter:on
         else:
             for item in self.entity_map.values():
                 result.extend(self.session.query(item).all())
-
-        return {f"{entry.__class__.__name__}.{entry.id}": entry for entry in result}
+        # @formatter:off
+        return {f"{entry.__class__.__name__}.{entry.id}": entry
+                for entry in result}
+        # @formatter:on
 
     def save(self):
         self.session.commit()

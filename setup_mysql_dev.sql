@@ -1,6 +1,6 @@
 -- A script to set sql database server
 
 CREATE DATABASE IF NOT EXISTS hbnb_dev_db;
-CREATE USER IF NOT EXISTS 'fargo'@'localhost' IDENTIFIED BY 'aeflheim';
-GRANT ALL PRIVILEGES ON sceptre.* TO 'fargo'@'localhost';
-GRANT SELECT ON performance_schema.* TO 'fargo'@'localhost';
+CREATE USER IF NOT EXISTS 'hbnb_dev'@'localhost' IDENTIFIED BY 'hbnb_dev_pwd';
+GRANT ALL PRIVILEGES ON hbnb_dev_db.* TO 'hbnb_dev'@'localhost';
+GRANT SELECT ON performance_schema.* TO 'hbnb_dev'@'localhost';

@@ -4,7 +4,9 @@ import os
 
 import models
 from models.state import State
-from tests.test_models.test_base_model import test_basemodel, TestDBPersistence, is_valid_uuid4
+from tests.test_models.test_base_model import (test_basemodel,
+                                               TestDBPersistence,
+                                               is_valid_uuid4)
 
 
 class test_state(test_basemodel):
