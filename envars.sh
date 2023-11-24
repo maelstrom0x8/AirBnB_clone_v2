@@ -10,3 +10,4 @@ export HBNB_MYSQL_USER=fargo
 export HBNB_DB_PORT=42343
 
 alias dc='docker-compose'
+alias pc=pycodestyle
