@@ -285,7 +285,7 @@ class HBNBCommand(cmd.Cmd):
             return
         _Class = self.classes.get(_args[0])
         if _Class is None:
-            print('** class does not exist **')
+            print("** class doesn't exist **")
             return
 
         try:
@@ -297,7 +297,6 @@ class HBNBCommand(cmd.Cmd):
                     setattr(instance, k, kw[k])
             instance.save()
             print(instance.id)
-            return
         except AttributeError:
             pass
 
