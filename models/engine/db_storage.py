@@ -9,8 +9,6 @@ from sqlalchemy.orm import sessionmaker, scoped_session, Session
 
 from models.base_model import BaseModel, Base
 from models.city import City
-from models.place import Place
-from models.review import Review
 from models.state import State
 from models.user import User
 
@@ -37,7 +35,7 @@ class DataSource:
 
         self.__connection_url = ''.join(cargs)
         self.__engine = create_engine(
-            self.__connection_url, pool_pre_ping=True)
+            self.__connection_url, pool_pre_ping=True, echo=True)
 
     @property
     def engine(self):
@@ -64,8 +62,7 @@ class DBStorage:
     __session = None
 
     entity_map: dict[str, Entity] = {
-        'State': State, 'City': City, 'User': User,
-        'Place': Place, 'Review': Review
+        'State': State, 'City': City, 'User': User
     }
 
     def __init__(self) -> None:

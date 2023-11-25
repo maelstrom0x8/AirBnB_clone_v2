@@ -1,22 +1,25 @@
 #!/usr/bin/python3
 """ Place Module for HBNB project """
+import os
+from shlex import shlex
 
-from sqlalchemy import Column, Float, ForeignKey, Integer, String
+from sqlalchemy import Column, Float, ForeignKey, Integer, String, Table
 from sqlalchemy.orm import relationship
 
+import models
+from models.amenity import Amenity
 from models.base_model import Base, BaseModel
 
-
-# place_amenity = Table('place_amenity', Base.metadata,
-#                       Column('place_id', String(60),
-#                              ForeignKey('places.id'),
-#                              primary_key=True,
-#                              nullable=False),
-#                       Column('amenity_id', String(60),
-#                              ForeignKey('amenities.id'),
-#                              primary_key=True,
-#                              nullable=False)
-#                       )
+place_amenity = Table('place_amenity', Base.metadata,
+                      Column('place_id', String(60),
+                             ForeignKey('places.id'),
+                             primary_key=True,
+                             nullable=False),
+                      Column('amenity_id', String(60),
+                             ForeignKey('amenities.id'),
+                             primary_key=True,
+                             nullable=False)
+                      )
 
 
 class Place(BaseModel, Base):
@@ -35,40 +38,38 @@ class Place(BaseModel, Base):
 
     user = relationship('User', back_populates='places')
     cities = relationship('City', back_populates='places')
-    reviews = relationship('Review', back_populates='place')
 
-    #
-    # if "db" == os.getenv("HBNB_TYPE_STORAGE"):
-    #     reviews = relationship("Review", cascade='all, delete, delete-orphan',
-    #                            backref="place")
-    #
-    #     amenities = relationship("Amenity", secondary=place_amenity,
-    #                              viewonly=False,
-    #                              back_populates="place_amenities")
-    # else:
-    #     @property
-    #     def reviews(self):
-    #         """ Returns list of reviews. Id """
-    #         var = models.storage.all()
-    #         lista = []
-    #         result = []
-    #         for key in var:
-    #             review = key.replace('.', ' ')
-    #             review = shlex.split(review)
-    #             if review[0] == 'Review':
-    #                 lista.append(var[key])
-    #         for elem in lista:
-    #             if self.id == elem.place_id:
-    #                 result.append(elem)
-    #         return result
-    #
-    #     @property
-    #     def amenities(self):
-    #         """ Returns list of amenity ids """
-    #         return self.amenity_ids
-    #
-    #     @amenities.setter
-    #     def amenities(self, obj=None):
-    #         """ Appends amenity ids to the attribute """
-    #         if not (not (type(obj) is Amenity) or not (obj.id not in self.amenity_ids)):
-    #             self.amenity_ids.append(obj.id)
+    if "db" == os.getenv("HBNB_TYPE_STORAGE"):
+        reviews = relationship("Review", cascade='all, delete, delete-orphan',
+                               backref="place")
+
+        amenities = relationship("Amenity", secondary=place_amenity,
+                                 viewonly=False,
+                                 back_populates="place_amenities")
+    else:
+        @property
+        def reviews(self):
+            """ Returns list of reviews. Id """
+            var = models.storage.all()
+            lista = []
+            result = []
+            for key in var:
+                review = key.replace('.', ' ')
+                review = shlex.split(review)
+                if review[0] == 'Review':
+                    lista.append(var[key])
+            for elem in lista:
+                if self.id == elem.place_id:
+                    result.append(elem)
+            return result
+
+        @property
+        def amenities(self):
+            """ Returns list of amenity ids """
+            return self.amenity_ids
+
+        @amenities.setter
+        def amenities(self, obj=None):
+            """ Appends amenity ids to the attribute """
+            if not (not (type(obj) is Amenity) or not (obj.id not in self.amenity_ids)):
+                self.amenity_ids.append(obj.id)
