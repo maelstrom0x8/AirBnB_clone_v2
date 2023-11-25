@@ -35,7 +35,7 @@ class DataSource:
 
         self.__connection_url = ''.join(cargs)
         self.__engine = create_engine(
-            self.__connection_url, pool_pre_ping=True, echo=True)
+            self.__connection_url, pool_pre_ping=True)
 
     @property
     def engine(self):
