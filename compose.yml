@@ -22,11 +22,9 @@ services:
     ports:
       - ${HBNB_DB_PORT}:3306
     environment:
-      MYSQL_PASSWORD: ${HBNB_MYSQL_PWD}
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_USER: ${HBNB_MYSQL_USER}
-      MYSQL_DB: ${HBNB_MYSQL_DB}
+      MYSQL_ROOT_PASSWORD: ${HBNB_MYSQL_PWD}
+      MYSQL_DB: hbnb_dev_db
 
-    volumes:
-      - ./setup_mysql_dev.sql:/docker-entrypoint-initdb.d/init.sql
-
+#    volumes:
+#      - ./setup_mysql_dev.sql:/docker-entrypoint-initdb.d/init.sql
+#

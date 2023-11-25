@@ -1,12 +1,15 @@
-#!/usr/bin/env python3
+#!/usr/bin/python3
 """ Console Module """
 import cmd
-import shlex
+import re
 import sys
 
-from models.__init__ import storage
+from models import storage
 from models.city import City
+from models.place import Place
+from models.review import Review
 from models.state import State
+from models.user import User
 
 
 class HBNBCommand(cmd.Cmd):
@@ -16,7 +19,7 @@ class HBNBCommand(cmd.Cmd):
     prompt = '(hbnb) ' if sys.__stdin__.isatty() else ''
 
     classes = {
-        'State': State, 'City': City,
+        'State': State, 'City': City, 'User': User, 'Review': Review, 'Place': Place
     }
     dot_cmds = ['all', 'count', 'show', 'destroy', 'update']
     types = {
@@ -29,57 +32,6 @@ class HBNBCommand(cmd.Cmd):
         """Prints if isatty is false"""
         if not sys.__stdin__.isatty():
             print('(hbnb)')
-
-    def precmd(self, line):
-        """Reformat command line for advanced command syntax.
-
-        Usage: <class name>.<command>([<id> [<*args> or <**kwargs>]])
-        (Brackets denote optional fields in usage example.)
-        """
-        _cmd = _cls = _id = _args = ''  # initialize line elements
-
-        # scan for general formating - i.e '.', '(', ')'
-        if not ('.' in line and '(' in line and ')' in line):
-            return line
-
-        try:  # parse line left to right
-            pline = line[:]  # parsed line
-
-            # isolate <class name>
-            _cls = pline[:pline.find('.')]
-
-            # isolate and validate <command>
-            _cmd = pline[pline.find('.') + 1:pline.find('(')]
-            if _cmd not in HBNBCommand.dot_cmds:
-                raise Exception
-
-            # if parantheses contain arguments, parse them
-            pline = pline[pline.find('(') + 1:pline.find(')')]
-            if pline:
-                # partition args: (<id>, [<delim>], [<*args>])
-                pline = pline.partition(', ')  # pline convert to tuple
-
-                # isolate _id, stripping quotes
-                _id = pline[0].replace('\"', '')
-                # possible bug here:
-                # empty quotes register as empty _id when replaced
-
-                # if arguments exist beyond _id
-                pline = pline[2].strip()  # pline is now str
-                if pline:
-                    # check for *args or **kwargs
-                    if pline[0] == '{' and pline[-1] == '}' \
-                            and type(eval(pline)) is dict:
-                        _args = pline
-                    else:
-                        _args = pline.replace(',', '')
-                        # _args = _args.replace('\"', '')
-            line = ' '.join([_cmd, _cls, _id, _args])
-
-        except Exception as mess:
-            pass
-        finally:
-            return line
 
     def postcmd(self, stop, line):
         """Prints if isatty is false"""
@@ -121,26 +73,6 @@ class HBNBCommand(cmd.Cmd):
             else:
                 new_dict[key] = value
         return new_dict
-
-    def do_create(self, args):
-        """ Create an object of any class"""
-        all_args = shlex.split(args)
-        cls_name = all_args[0]
-
-        if not cls_name:
-            print("** class name missing **")
-            return
-        elif cls_name not in HBNBCommand.classes:
-            print("** class doesn't exist **")
-            return
-
-        arg_dict = self.parse_attr(all_args)
-
-        new_instance = HBNBCommand.classes[cls_name]()
-        for y in arg_dict:
-            setattr(new_instance, y, arg_dict[y])
-        new_instance.save()
-        print(new_instance.id)
 
     def help_create(self):
         """ Help information for the create method """
@@ -328,6 +260,90 @@ class HBNBCommand(cmd.Cmd):
         """ Help information for the update class """
         print("Updates an object with new information")
         print("Usage: update <className> <id> <attName> <attVal>\n")
+
+    def precmd(self, line: str):
+        try:
+            _fn = 'do_' + line.split(' ')[0]
+            if getattr(self, _fn) is not None:
+                return super().precmd(line)
+        except (AttributeError):
+            try:
+                ln = self.preprocess_input(line)
+                return super().precmd(ln)
+            except (AttributeError, TypeError, ValueError, IndexError):
+                return super().precmd(line)
+
+        return super().precmd(line)
+
+    def do_create(self, *args):
+        """Create a new model"""
+        _args = (str(args[0]).split(' '))
+        kw = self.parse_attr_v2(_args[1:])
+
+        if len(_args) < 1 or args[0] == '':
+            print('** class name missing **')
+            return
+        _Class = self.classes.get(_args[0])
+        if _Class is None:
+            print('** class does not exist **')
+            return
+
+        try:
+            instance = _Class()
+            for k in kw:
+                if k in self.types:
+                    setattr(instance, k, self.types[k](kw[k]))
+                else:
+                    setattr(instance, k, kw[k])
+            instance.save()
+            print(instance.id)
+            return
+        except AttributeError:
+            pass
+
+    def parse_attr_v2(self, args):
+        """Parses class attributes and returns a dictionary representation"""
+        arg_dict = {}
+        for x in range(0, len(args)):
+            tmp = args[x].split("=")
+            arg_dict[tmp[0]] = tmp[1]
+        new_dict = {}
+        for key, value in arg_dict.items():
+            if isinstance(value, str):
+                new_dict[key] = value.replace("_", " ").replace('"', '')
+            else:
+                new_dict[key] = value
+        return new_dict
+
+    def preprocess_input(self, line: str):
+        args = [self.remove_quotes(x)
+                for x in self.tokenize_string(line)]
+        _entity = args[0]
+        _method = args[1]
+        _args = args[2:]
+        if getattr(self, 'do_' + _method) is not None:
+            return ' '.join([_method, _entity] + _args)
+
+    def remove_quotes(self, input: str):
+        if input.startswith(('"', "'")) and input.endswith(('"', "'")):
+            return input[1:-1]
+        else:
+            return input
+
+    def tokenize_string(self, input_string):
+        if input_string is None or len(input_string) == 0:
+            return ['']
+        pattern = r'([A-Za-z_][A-Za-z0-9_]*(\.[A-Za-z_][A-Za-z0-9_]*)*)\.([A \
+        -Za-z_][A-Za-z0-9_]*)\(([^)]*)\)'
+
+        match = re.match(pattern, input_string)
+        if match:
+            class_name = match.group(1)
+            method_name = match.group(3)
+            args = [arg.strip() for arg in match.group(4).split(',')]
+            return [class_name, method_name] + args
+
+        return None
 
 
 if __name__ == "__main__":

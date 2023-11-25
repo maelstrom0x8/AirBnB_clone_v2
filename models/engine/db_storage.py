@@ -1,11 +1,16 @@
-#!/usr/bin/env python3
+#!/usr/bin/python3
+
 import contextlib
+import os
 from typing import Union
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session, Session
 
-from models.state import *
+from models.base_model import BaseModel, Base
+from models.city import City
+from models.place import Place
+from models.state import State
 from models.user import User
 
 Entity = Union[Base, BaseModel]
@@ -58,7 +63,8 @@ class DBStorage:
     __session = None
 
     entity_map: dict[str, Entity] = {
-        'State': State, 'City': City, 'User': User
+        'State': State, 'City': City, 'User': User,
+        'Place': Place
     }
 
     def __init__(self) -> None:
@@ -78,19 +84,14 @@ class DBStorage:
         return self.__session
 
     def new(self, obj):
-        _class = self.entity_map.get(obj.__class__.__name__)
-        if not _class:
-            print("** class doesn't exist **")
-            return None
         self.session.add(obj)
 
     def reload(self):
-        if self.engine is not None:
-            Base.metadata.create_all(self.__engine)
+        Base.metadata.create_all(self.__engine)
         session_factory = sessionmaker(bind=self.__engine,
                                        expire_on_commit=False)
-        Session = scoped_session(session_factory)
-        self.__session = Session()
+        session_ = scoped_session(session_factory)
+        self.__session = session_()
 
     def all(self, cls=None):
         _class = self.entity_map.get(cls)
@@ -103,7 +104,7 @@ class DBStorage:
             # @formatter:off
             return {f"{entry.__class__.__name__}.{entry.id}": entry
                     for entry in result}
-            # formatter:on
+            # @formatter:on
         else:
             for item in self.entity_map.values():
                 result.extend(self.session.query(item).all())
