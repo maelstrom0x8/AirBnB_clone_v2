@@ -7,8 +7,11 @@ from typing import Union
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session, Session
 
+from models.amenity import Amenity
 from models.base_model import BaseModel, Base
 from models.city import City
+from models.place import Place
+from models.review import Review
 from models.state import State
 from models.user import User
 
@@ -62,7 +65,8 @@ class DBStorage:
     __session = None
 
     entity_map: dict[str, Entity] = {
-        'State': State, 'City': City, 'User': User
+        'State': State, 'City': City, 'User': User,
+        'Place': Place, 'Review': Review, 'Amenity': Amenity
     }
 
     def __init__(self) -> None:
@@ -96,9 +100,7 @@ class DBStorage:
         result = []
         if cls is not None:
             result.extend(self.session.query(_class).all())
-            if len(result) == 1 and result[0][0] is None:
-                return []
-
+            
             # @formatter:off
             return {f"{entry.__class__.__name__}.{entry.id}": entry
                     for entry in result}

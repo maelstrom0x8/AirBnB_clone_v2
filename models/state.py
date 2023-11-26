@@ -25,6 +25,4 @@ class State(BaseModel, Base):
             return [y for _, y in result.items() if self.id == y.id]
 
     def save(self):
-        if self.name is None:
-            raise AttributeError("Attribute 'name' cannot be none")
         super().save()

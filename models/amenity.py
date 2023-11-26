@@ -4,6 +4,7 @@ from sqlalchemy import Column, String
 from sqlalchemy.orm import relationship
 
 from models.base_model import Base, BaseModel
+from models.place import place_amenity
 
 
 class Amenity(BaseModel, Base):
@@ -12,7 +13,4 @@ class Amenity(BaseModel, Base):
 
     name = Column(String(128), nullable=False)
 
-    # Many-to-Many relationship with Place
-    place_amenities = relationship('Place',
-                                   secondary='place_amenity',
-                                   back_populates='amenities')
+    place_amenities = relationship("Place", secondary=place_amenity)

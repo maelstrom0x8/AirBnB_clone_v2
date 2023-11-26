@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 """ Place Module for HBNB project """
 import os
-from shlex import shlex
+import shlex
 
 from sqlalchemy import Column, Float, ForeignKey, Integer, String, Table
 from sqlalchemy.orm import relationship
@@ -10,16 +10,15 @@ import models
 from models.amenity import Amenity
 from models.base_model import Base, BaseModel
 
-place_amenity = Table('place_amenity', Base.metadata,
-                      Column('place_id', String(60),
-                             ForeignKey('places.id'),
+place_amenity = Table("place_amenity", Base.metadata,
+                      Column("place_id", String(60),
+                             ForeignKey("places.id"),
                              primary_key=True,
                              nullable=False),
-                      Column('amenity_id', String(60),
-                             ForeignKey('amenities.id'),
+                      Column("amenity_id", String(60),
+                             ForeignKey("amenities.id"),
                              primary_key=True,
-                             nullable=False)
-                      )
+                             nullable=False))
 
 
 class Place(BaseModel, Base):
@@ -35,9 +34,9 @@ class Place(BaseModel, Base):
     price_by_night = Column(Integer(), default=0, nullable=False)
     latitude = Column(Float(), nullable=True)
     longitude = Column(Float(), nullable=True)
+    amenity_id = []
 
     user = relationship('User', back_populates='places')
-    cities = relationship('City', back_populates='places')
 
     if "db" == os.getenv("HBNB_TYPE_STORAGE"):
         reviews = relationship("Review", cascade='all, delete, delete-orphan',
