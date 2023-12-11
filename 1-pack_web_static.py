@@ -29,12 +29,9 @@ def do_pack():
         str: The path to the created archive, or None if the
         archive creation fails.
     """
-    local("mkdir -p versions")
+    local("sudo mkdir -p versions")
     date = datetime.now().strftime("%Y%m%d%H%M%S")
-    archived_f_path = "versions/web_static_{}.tgz".format(date)
-    t_gzip_archive = local("tar -cvzf {} web_static".format(archived_f_path))
+    tarball_dir = "versions/web_static_{}.tgz".format(date)
+    tarball = local("tar -cvzf {} web_static".format(tarball_dir))
 
-    if t_gzip_archive.succeeded:
-        return archived_f_path
-    else:
-        return None
+    return tarball_dir if tarball.succeeded else None
