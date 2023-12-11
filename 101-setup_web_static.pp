@@ -1,56 +1,15 @@
-# Configures a web server for deployment of web_static.
-
-# Nginx configuration file
-$nginx_conf = "server {
-    listen 80 default_server;
-    listen [::]:80 default_server;
-    add_header X-Served-By ${hostname};
-    root   /var/www/html;
-    index  index.html index.htm;
-
-    location /hbnb_static {
-        alias /data/web_static/current;
-        index index.html index.htm;
-    }
-
-    location /redirect_me {
-        return 301 https://google.com/;
-    }
-
-    error_page 404 /404.html;
-    location /404 {
-      root /var/www/html;
-      internal;
-    }
-}"
-
 package { 'nginx':
-  ensure   => 'present',
+  ensure   => 'installed',
   provider => 'apt'
-} ->
-
-file { '/data':
+}
+-> file { '/data':
   ensure  => 'directory'
-} ->
-
-file { '/data/web_static':
+}
+-> file { ['/data/web_static', '/data/web_static/releases', '/data/web_static/releases/test', '/data/web_static/shared']:
   ensure => 'directory'
-} ->
-
-file { '/data/web_static/releases':
-  ensure => 'directory'
-} ->
-
-file { '/data/web_static/releases/test':
-  ensure => 'directory'
-} ->
-
-file { '/data/web_static/shared':
-  ensure => 'directory'
-} ->
-
-file { '/data/web_static/releases/test/index.html':
-  ensure  => 'present',
+}
+-> file { '/data/web_static/releases/test/index.html':
+  ensure  => 'file',
   content => '<html>
   <head>
   </head>
@@ -59,40 +18,29 @@ file { '/data/web_static/releases/test/index.html':
   </body>
 </html>
 '
-} ->
-
-file { '/data/web_static/current':
+}
+-> file { '/data/web_static/current':
   ensure => 'link',
   target => '/data/web_static/releases/test'
-} ->
-
-exec { 'chown -R ubuntu:ubuntu /data/':
-  path => '/usr/bin/:/usr/local/bin/:/bin/'
 }
-
-file { '/var/www':
+-> exec { 'chown -R ubuntu:ubuntu /data/':
+  command => '/bin/chown -R ubuntu:ubuntu /data/',
+}
+-> file { '/var/www':
   ensure => 'directory'
-} ->
-
-file { '/var/www/html':
+}
+-> file { '/var/www/html':
   ensure => 'directory'
-} ->
-
-file { '/var/www/html/index.html':
-  ensure  => 'present',
-  content => "Holberton School Nginx\n"
-} ->
-
-file { '/var/www/html/404.html':
-  ensure  => 'present',
-  content => "This is not a page\n"
-} ->
-
-file { '/etc/nginx/sites-available/default':
-  ensure  => 'present',
+}
+-> file { ['/var/www/html/index.html', '/var/www/html/404.html']:
+  ensure  => 'file',
+  content => ["Holberton School Nginx\n", "This is not a page\n"]
+}
+-> file { '/etc/nginx/sites-available/default':
+  ensure  => 'file',
   content => $nginx_conf
-} ->
-
-exec { 'nginx restart':
-  path => '/etc/init.d/'
+}
+-> exec { 'nginx restart':
+  command     => '/etc/init.d/nginx restart',
+  refreshonly => true,
 }
