@@ -14,8 +14,6 @@ Routes:
 - "/hbnb": Displays the message "HBNB" when accessed.
 - "/c/<text>": Displays the message "C " followed by the value of the
   'text' variable (underscore '_' symbols replaced with a space).
-
-Author: [Your Name]
 """
 
 from flask import Flask

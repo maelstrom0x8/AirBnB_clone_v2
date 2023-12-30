@@ -12,7 +12,6 @@ Usage:
 Routes:
 - "/": Displays the message "Hello HBNB!" when accessed.
 - "/hbnb": Displays the message "HBNB" when accessed.
-
 """
 
 from flask import Flask
